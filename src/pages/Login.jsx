@@ -32,45 +32,57 @@ class Login extends Component {
 
   render() {
     return (
-      <div>
-        <h1>Login</h1>
-        <p>Sistema de atendimento e matrículas</p>
-
-        <form onSubmit={this.handleSubmit}>
-          <div>
-            <label htmlFor="email">Email</label>
-            <br />
-            <input
-              id="email"
-              type="email"
-              name="email"
-              value={this.state.email}
-              onChange={this.handleChange}
-              required
-            />
+      <div className="container-fluid">
+        <div className="row min-vh-100">
+          <div className="col-md-6 login-painel">
+            <div>
+              <h1>Matrículas</h1>
+              <p>Sistema de atendimento e matrículas</p>
+            </div>
           </div>
 
-          <br />
+          <div className="col-md-6 login-form">
+            <form className="login-box" onSubmit={this.handleSubmit}>
+              <h2>Acesso</h2>
 
-          <div>
-            <label htmlFor="senha">Senha</label>
-            <br />
-            <input
-              id="senha"
-              type="password"
-              name="senha"
-              value={this.state.senha}
-              onChange={this.handleChange}
-              required
-            />
+              <div className="mb-3">
+                <label className="form-label" htmlFor="email">
+                  Email
+                </label>
+                <input
+                  className="form-control"
+                  id="email"
+                  type="email"
+                  name="email"
+                  value={this.state.email}
+                  onChange={this.handleChange}
+                  required
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label" htmlFor="senha">
+                  Senha
+                </label>
+                <input
+                  className="form-control"
+                  id="senha"
+                  type="password"
+                  name="senha"
+                  value={this.state.senha}
+                  onChange={this.handleChange}
+                  required
+                />
+              </div>
+
+              {this.state.erro && <div className="alert alert-danger">{this.state.erro}</div>}
+
+              <button className="btn btn-primary" type="submit">
+                Entrar
+              </button>
+            </form>
           </div>
-
-          <br />
-
-          {this.state.erro && <p>{this.state.erro}</p>}
-
-          <button type="submit">Entrar</button>
-        </form>
+        </div>
       </div>
     );
   }

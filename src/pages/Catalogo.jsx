@@ -62,51 +62,90 @@ class Catalogo extends Component {
   };
 
   render() {
-    const { setTela } = this.context;
+    const { telaAtual, setTela, logout } = this.context;
     const { turmas, erro, mensagem } = this.state;
 
     return (
       <div>
-        <h1>Catálogo de turmas</h1>
-        <button type="button" onClick={() => setTela('aluno')}>
-          Voltar
-        </button>
+        <nav className="navbar navbar-dark navbar-marca">
+          <div className="container">
+            <span className="navbar-brand">Matrículas</span>
+            <ul className="navbar-nav">
+              <li className="nav-item">
+                <button
+                  type="button"
+                  className={`nav-link${telaAtual === 'aluno' ? ' active' : ''}`}
+                  onClick={() => setTela('aluno')}
+                >
+                  Início
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
+                  type="button"
+                  className={`nav-link${telaAtual === 'catalogo' ? ' active' : ''}`}
+                  onClick={() => setTela('catalogo')}
+                >
+                  Catálogo
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
+                  type="button"
+                  className={`nav-link${telaAtual === 'minhas' ? ' active' : ''}`}
+                  onClick={() => setTela('minhas')}
+                >
+                  Minhas matrículas
+                </button>
+              </li>
+              <li className="nav-item">
+                <button type="button" className="nav-link" onClick={logout}>
+                  Sair
+                </button>
+              </li>
+            </ul>
+          </div>
+        </nav>
 
-        {erro && <p>{erro}</p>}
-        {mensagem && <p>{mensagem}</p>}
+        <main className="container py-4">
+          <h1>Catálogo de turmas</h1>
 
-        <table>
-          <thead>
-            <tr>
-              <th>Disciplina</th>
-              <th>Professor</th>
-              <th>Horário</th>
-              <th>Vagas</th>
-              <th>Ação</th>
-            </tr>
-          </thead>
-          <tbody>
-            {turmas.map((turma) => (
-              <tr key={turma.turmaid}>
-                <td>
-                  {turma.disciplina_codigo} — {turma.disciplina_nome}
-                </td>
-                <td>{turma.professor_nome}</td>
-                <td>
-                  {turma.codigo_horario} ({nomeDia(turma.dia_semana)} / {nomeTurno(turma.turno)})
-                </td>
-                <td>
-                  {turma.vagas_ocupadas}/{turma.vagas}
-                </td>
-                <td>
-                  <button type="button" onClick={() => this.matricular(turma)}>
-                    Matricular
-                  </button>
-                </td>
+          {erro && <div className="alert alert-danger">{erro}</div>}
+          {mensagem && <div className="alert alert-success">{mensagem}</div>}
+
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Disciplina</th>
+                <th>Professor</th>
+                <th>Horário</th>
+                <th>Vagas</th>
+                <th>Ação</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {turmas.map((turma) => (
+                <tr key={turma.turmaid}>
+                  <td>
+                    {turma.disciplina_codigo} — {turma.disciplina_nome}
+                  </td>
+                  <td>{turma.professor_nome}</td>
+                  <td>
+                    {turma.codigo_horario} ({nomeDia(turma.dia_semana)} / {nomeTurno(turma.turno)})
+                  </td>
+                  <td>
+                    {turma.vagas_ocupadas}/{turma.vagas}
+                  </td>
+                  <td>
+                    <button className="btn btn-primary btn-sm" type="button" onClick={() => this.matricular(turma)}>
+                      Matricular
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </main>
       </div>
     );
   }

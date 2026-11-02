@@ -3,36 +3,63 @@ import { AuthContext } from '../context/AuthContext';
 
 class InstituicaoHome extends Component {
   render() {
-    const { usuario, logout, setTela } = this.context;
+    const { usuario, telaAtual, setTela, logout } = this.context;
 
     return (
       <div>
-        <h1>Área da Instituição</h1>
-        <p>Olá, {usuario.nome}</p>
-
-        <nav>
-          <ul>
-            <li>
-              <button type="button" onClick={() => setTela('ofertas')}>
-                Ofertas de turmas
-              </button>
-            </li>
-            <li>
-              <button type="button" onClick={() => setTela('prerequisitos')}>
-                Pré-requisitos
-              </button>
-            </li>
-            <li>
-              <button type="button" disabled>
-                Carga de professores (em breve)
-              </button>
-            </li>
-          </ul>
+        <nav className="navbar navbar-dark navbar-marca">
+          <div className="container">
+            <span className="navbar-brand">Matrículas</span>
+            <ul className="navbar-nav">
+              <li className="nav-item">
+                <button
+                  type="button"
+                  className={`nav-link${telaAtual === 'instituicao' ? ' active' : ''}`}
+                  onClick={() => setTela('instituicao')}
+                >
+                  Início
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
+                  type="button"
+                  className={`nav-link${telaAtual === 'ofertas' ? ' active' : ''}`}
+                  onClick={() => setTela('ofertas')}
+                >
+                  Ofertas
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
+                  type="button"
+                  className={`nav-link${telaAtual === 'prerequisitos' ? ' active' : ''}`}
+                  onClick={() => setTela('prerequisitos')}
+                >
+                  Pré-requisitos
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
+                  type="button"
+                  className={`nav-link${telaAtual === 'carga' ? ' active' : ''}`}
+                  onClick={() => setTela('carga')}
+                >
+                  Carga
+                </button>
+              </li>
+              <li className="nav-item">
+                <button type="button" className="nav-link" onClick={logout}>
+                  Sair
+                </button>
+              </li>
+            </ul>
+          </div>
         </nav>
 
-        <button type="button" onClick={logout}>
-          Sair
-        </button>
+        <main className="container py-4">
+          <h1>Área da Instituição</h1>
+          <p>Olá, {usuario.nome}</p>
+        </main>
       </div>
     );
   }

@@ -1,1 +1,62 @@
-/* Estilos de marca ficam para a Fase 8 */
+.navbar-marca {
+  background-color: #6b5aed;
+}
+
+.navbar-marca .navbar-nav {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.navbar-marca .nav-link {
+  color: #fff;
+  background: none;
+  border: 0;
+  padding: 0.5rem 0.75rem;
+}
+
+.navbar-marca .nav-link.active {
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.btn-primary,
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  background-color: #6b5aed;
+  border-color: #6b5aed;
+}
+
+.login-painel {
+  background-color: #6b5aed;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  min-height: 40vh;
+  padding: 2rem;
+}
+
+.login-form {
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  padding: 2rem;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 420px;
+}
+
+.carga-acima,
+.carga-acima > td {
+  background-color: #eee9ff;
+}
+
+@media (min-width: 768px) {
+  .login-painel,
+  .login-form {
+    min-height: 100vh;
+  }
+}

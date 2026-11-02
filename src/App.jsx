@@ -5,6 +5,7 @@ import InstituicaoHome from './pages/InstituicaoHome';
 import AlunoHome from './pages/AlunoHome';
 import Ofertas from './pages/Ofertas';
 import PreRequisitos from './pages/PreRequisitos';
+import CargaProfessores from './pages/CargaProfessores';
 import Catalogo from './pages/Catalogo';
 import MinhasMatriculas from './pages/MinhasMatriculas';
 
@@ -23,6 +24,8 @@ class App extends Component {
           return <Ofertas />;
         case 'prerequisitos':
           return <PreRequisitos />;
+        case 'carga':
+          return <CargaProfessores />;
         case 'instituicao':
         default:
           return <InstituicaoHome />;

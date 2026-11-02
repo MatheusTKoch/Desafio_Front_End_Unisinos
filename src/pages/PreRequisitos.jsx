@@ -129,103 +129,159 @@ class PreRequisitos extends Component {
   };
 
   render() {
-    const { setTela } = this.context;
+    const { telaAtual, setTela, logout } = this.context;
     const { disciplinas, prerequisitos, form, prerequisitoidEdicao, erro, mensagem } = this.state;
 
     return (
       <div>
-        <h1>Pré-requisitos</h1>
-        <button type="button" onClick={() => setTela('instituicao')}>
-          Voltar
-        </button>
-
-        <h2>{prerequisitoidEdicao ? 'Editar pré-requisito' : 'Novo pré-requisito'}</h2>
-        <form onSubmit={this.handleSubmit}>
-          <div>
-            <label htmlFor="disciplinaid">Disciplina</label>
-            <br />
-            <select
-              id="disciplinaid"
-              name="disciplinaid"
-              value={form.disciplinaid}
-              onChange={this.handleChange}
-              required
-            >
-              <option value="">Selecione</option>
-              {disciplinas.map((disciplina) => (
-                <option key={disciplina.disciplinaid} value={disciplina.disciplinaid}>
-                  {disciplina.codigo} — {disciplina.nome}
-                </option>
-              ))}
-            </select>
+        <nav className="navbar navbar-dark navbar-marca">
+          <div className="container">
+            <span className="navbar-brand">Matrículas</span>
+            <ul className="navbar-nav">
+              <li className="nav-item">
+                <button
+                  type="button"
+                  className={`nav-link${telaAtual === 'instituicao' ? ' active' : ''}`}
+                  onClick={() => setTela('instituicao')}
+                >
+                  Início
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
+                  type="button"
+                  className={`nav-link${telaAtual === 'ofertas' ? ' active' : ''}`}
+                  onClick={() => setTela('ofertas')}
+                >
+                  Ofertas
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
+                  type="button"
+                  className={`nav-link${telaAtual === 'prerequisitos' ? ' active' : ''}`}
+                  onClick={() => setTela('prerequisitos')}
+                >
+                  Pré-requisitos
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
+                  type="button"
+                  className={`nav-link${telaAtual === 'carga' ? ' active' : ''}`}
+                  onClick={() => setTela('carga')}
+                >
+                  Carga
+                </button>
+              </li>
+              <li className="nav-item">
+                <button type="button" className="nav-link" onClick={logout}>
+                  Sair
+                </button>
+              </li>
+            </ul>
           </div>
+        </nav>
 
-          <br />
+        <main className="container py-4">
+          <h1>Pré-requisitos</h1>
 
-          <div>
-            <label htmlFor="disciplina_exigidaid">Disciplina exigida</label>
-            <br />
-            <select
-              id="disciplina_exigidaid"
-              name="disciplina_exigidaid"
-              value={form.disciplina_exigidaid}
-              onChange={this.handleChange}
-              required
-            >
-              <option value="">Selecione</option>
-              {disciplinas.map((disciplina) => (
-                <option key={disciplina.disciplinaid} value={disciplina.disciplinaid}>
-                  {disciplina.codigo} — {disciplina.nome}
-                </option>
-              ))}
-            </select>
-          </div>
+          <h2>{prerequisitoidEdicao ? 'Editar pré-requisito' : 'Novo pré-requisito'}</h2>
+          <form onSubmit={this.handleSubmit}>
+            <div className="mb-3">
+              <label className="form-label" htmlFor="disciplinaid">
+                Disciplina
+              </label>
+              <select
+                className="form-select"
+                id="disciplinaid"
+                name="disciplinaid"
+                value={form.disciplinaid}
+                onChange={this.handleChange}
+                required
+              >
+                <option value="">Selecione</option>
+                {disciplinas.map((disciplina) => (
+                  <option key={disciplina.disciplinaid} value={disciplina.disciplinaid}>
+                    {disciplina.codigo} — {disciplina.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <br />
+            <div className="mb-3">
+              <label className="form-label" htmlFor="disciplina_exigidaid">
+                Disciplina exigida
+              </label>
+              <select
+                className="form-select"
+                id="disciplina_exigidaid"
+                name="disciplina_exigidaid"
+                value={form.disciplina_exigidaid}
+                onChange={this.handleChange}
+                required
+              >
+                <option value="">Selecione</option>
+                {disciplinas.map((disciplina) => (
+                  <option key={disciplina.disciplinaid} value={disciplina.disciplinaid}>
+                    {disciplina.codigo} — {disciplina.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <button type="submit">
-            {prerequisitoidEdicao ? 'Salvar alterações' : 'Criar pré-requisito'}
-          </button>
-          {prerequisitoidEdicao && (
-            <button type="button" onClick={this.cancelarEdicao}>
-              Cancelar edição
+            <button className="btn btn-primary" type="submit">
+              {prerequisitoidEdicao ? 'Salvar alterações' : 'Criar pré-requisito'}
             </button>
-          )}
-        </form>
+            {prerequisitoidEdicao && (
+              <button className="btn btn-secondary ms-2" type="button" onClick={this.cancelarEdicao}>
+                Cancelar edição
+              </button>
+            )}
+          </form>
 
-        {erro && <p>{erro}</p>}
-        {mensagem && <p>{mensagem}</p>}
+          {erro && <div className="alert alert-danger mt-3">{erro}</div>}
+          {mensagem && <div className="alert alert-success mt-3">{mensagem}</div>}
 
-        <h2>Pré-requisitos cadastrados</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Disciplina</th>
-              <th>Exige</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {prerequisitos.map((prerequisito) => (
-              <tr key={prerequisito.prerequisitoid}>
-                <td>
-                  {prerequisito.disciplina_codigo} — {prerequisito.disciplina_nome}
-                </td>
-                <td>
-                  {prerequisito.exigida_codigo} — {prerequisito.exigida_nome}
-                </td>
-                <td>
-                  <button type="button" onClick={() => this.editar(prerequisito)}>
-                    Editar
-                  </button>
-                  <button type="button" onClick={() => this.remover(prerequisito)}>
-                    Remover
-                  </button>
-                </td>
+          <h2 className="mt-4">Pré-requisitos cadastrados</h2>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Disciplina</th>
+                <th>Exige</th>
+                <th>Ações</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {prerequisitos.map((prerequisito) => (
+                <tr key={prerequisito.prerequisitoid}>
+                  <td>
+                    {prerequisito.disciplina_codigo} — {prerequisito.disciplina_nome}
+                  </td>
+                  <td>
+                    {prerequisito.exigida_codigo} — {prerequisito.exigida_nome}
+                  </td>
+                  <td>
+                    <button
+                      className="btn btn-primary btn-sm me-2"
+                      type="button"
+                      onClick={() => this.editar(prerequisito)}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      className="btn btn-danger btn-sm"
+                      type="button"
+                      onClick={() => this.remover(prerequisito)}
+                    >
+                      Remover
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </main>
       </div>
     );
   }

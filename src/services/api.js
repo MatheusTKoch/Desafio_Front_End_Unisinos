@@ -37,6 +37,10 @@ export function listarProfessores(usuario) {
   return request('/api/professores', { headers: headers(usuario) });
 }
 
+export function listarCarga(usuario) {
+  return request('/api/carga-professores', { headers: headers(usuario) });
+}
+
 export function listarTurmas(usuario) {
   return request('/api/turmas', { headers: headers(usuario) });
 }

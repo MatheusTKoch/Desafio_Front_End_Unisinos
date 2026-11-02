@@ -58,42 +58,81 @@ class MinhasMatriculas extends Component {
   };
 
   render() {
-    const { setTela } = this.context;
+    const { telaAtual, setTela, logout } = this.context;
     const { matriculas, erro } = this.state;
 
     return (
       <div>
-        <h1>Minhas matrículas</h1>
-        <button type="button" onClick={() => setTela('aluno')}>
-          Voltar
-        </button>
+        <nav className="navbar navbar-dark navbar-marca">
+          <div className="container">
+            <span className="navbar-brand">Matrículas</span>
+            <ul className="navbar-nav">
+              <li className="nav-item">
+                <button
+                  type="button"
+                  className={`nav-link${telaAtual === 'aluno' ? ' active' : ''}`}
+                  onClick={() => setTela('aluno')}
+                >
+                  Início
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
+                  type="button"
+                  className={`nav-link${telaAtual === 'catalogo' ? ' active' : ''}`}
+                  onClick={() => setTela('catalogo')}
+                >
+                  Catálogo
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
+                  type="button"
+                  className={`nav-link${telaAtual === 'minhas' ? ' active' : ''}`}
+                  onClick={() => setTela('minhas')}
+                >
+                  Minhas matrículas
+                </button>
+              </li>
+              <li className="nav-item">
+                <button type="button" className="nav-link" onClick={logout}>
+                  Sair
+                </button>
+              </li>
+            </ul>
+          </div>
+        </nav>
 
-        {erro && <p>{erro}</p>}
+        <main className="container py-4">
+          <h1>Minhas matrículas</h1>
 
-        <table>
-          <thead>
-            <tr>
-              <th>Disciplina</th>
-              <th>Professor</th>
-              <th>Horário</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {matriculas.map((matricula) => (
-              <tr key={matricula.matriculaid}>
-                <td>
-                  {matricula.disciplina_codigo} — {matricula.disciplina_nome}
-                </td>
-                <td>{matricula.professor_nome}</td>
-                <td>
-                  {matricula.codigo_horario} ({nomeDia(matricula.dia_semana)} / {nomeTurno(matricula.turno)})
-                </td>
-                <td>{nomeStatus(matricula.status)}</td>
+          {erro && <div className="alert alert-danger">{erro}</div>}
+
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Disciplina</th>
+                <th>Professor</th>
+                <th>Horário</th>
+                <th>Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {matriculas.map((matricula) => (
+                <tr key={matricula.matriculaid}>
+                  <td>
+                    {matricula.disciplina_codigo} — {matricula.disciplina_nome}
+                  </td>
+                  <td>{matricula.professor_nome}</td>
+                  <td>
+                    {matricula.codigo_horario} ({nomeDia(matricula.dia_semana)} / {nomeTurno(matricula.turno)})
+                  </td>
+                  <td>{nomeStatus(matricula.status)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </main>
       </div>
     );
   }

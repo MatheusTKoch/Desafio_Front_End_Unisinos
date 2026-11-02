@@ -185,6 +185,23 @@ app.get('/api/professores', requerTipo('instituicao'), async (_req, res) => {
     }
 });
 
+app.get('/api/carga-professores', requerTipo('instituicao'), async (_req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT p.professorid,
+                    p.nome,
+                    COUNT(t.turmaid)::int AS turmas
+             FROM professor p
+             LEFT JOIN turma t ON t.professorid = p.professorid
+             GROUP BY p.professorid, p.nome
+             ORDER BY p.nome`
+        );
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ erro: err.message });
+    }
+});
+
 app.get('/api/turmas', requerTipo('instituicao', 'aluno'), async (_req, res) => {
     try {
         const result = await pool.query(`${SQL_TURMAS} ORDER BY t.turmaid`);

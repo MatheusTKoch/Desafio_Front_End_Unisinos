@@ -163,166 +163,218 @@ class Ofertas extends Component {
   };
 
   render() {
-    const { setTela } = this.context;
+    const { telaAtual, setTela, logout } = this.context;
     const { disciplinas, professores, turmas, form, turmaidEdicao, erro, mensagem } = this.state;
     const codigo = form.dia_semana && form.turno ? `${form.dia_semana}${form.turno}` : '';
 
     return (
       <div>
-        <h1>Ofertas de turmas</h1>
-        <button type="button" onClick={() => setTela('instituicao')}>
-          Voltar
-        </button>
-
-        <h2>{turmaidEdicao ? 'Editar turma' : 'Nova turma'}</h2>
-        <form onSubmit={this.handleSubmit}>
-          <div>
-            <label htmlFor="disciplinaid">Disciplina</label>
-            <br />
-            <select
-              id="disciplinaid"
-              name="disciplinaid"
-              value={form.disciplinaid}
-              onChange={this.handleChange}
-              required
-            >
-              <option value="">Selecione</option>
-              {disciplinas.map((disciplina) => (
-                <option key={disciplina.disciplinaid} value={disciplina.disciplinaid}>
-                  {disciplina.codigo} — {disciplina.nome}
-                </option>
-              ))}
-            </select>
+        <nav className="navbar navbar-dark navbar-marca">
+          <div className="container">
+            <span className="navbar-brand">Matrículas</span>
+            <ul className="navbar-nav">
+              <li className="nav-item">
+                <button
+                  type="button"
+                  className={`nav-link${telaAtual === 'instituicao' ? ' active' : ''}`}
+                  onClick={() => setTela('instituicao')}
+                >
+                  Início
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
+                  type="button"
+                  className={`nav-link${telaAtual === 'ofertas' ? ' active' : ''}`}
+                  onClick={() => setTela('ofertas')}
+                >
+                  Ofertas
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
+                  type="button"
+                  className={`nav-link${telaAtual === 'prerequisitos' ? ' active' : ''}`}
+                  onClick={() => setTela('prerequisitos')}
+                >
+                  Pré-requisitos
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
+                  type="button"
+                  className={`nav-link${telaAtual === 'carga' ? ' active' : ''}`}
+                  onClick={() => setTela('carga')}
+                >
+                  Carga
+                </button>
+              </li>
+              <li className="nav-item">
+                <button type="button" className="nav-link" onClick={logout}>
+                  Sair
+                </button>
+              </li>
+            </ul>
           </div>
+        </nav>
 
-          <br />
+        <main className="container py-4">
+          <h1>Ofertas de turmas</h1>
 
-          <div>
-            <label htmlFor="professorid">Professor</label>
-            <br />
-            <select
-              id="professorid"
-              name="professorid"
-              value={form.professorid}
-              onChange={this.handleChange}
-              required
-            >
-              <option value="">Selecione</option>
-              {professores.map((professor) => (
-                <option key={professor.professorid} value={professor.professorid}>
-                  {professor.nome}
-                </option>
-              ))}
-            </select>
-          </div>
+          <h2>{turmaidEdicao ? 'Editar turma' : 'Nova turma'}</h2>
+          <form onSubmit={this.handleSubmit}>
+            <div className="mb-3">
+              <label className="form-label" htmlFor="disciplinaid">
+                Disciplina
+              </label>
+              <select
+                className="form-select"
+                id="disciplinaid"
+                name="disciplinaid"
+                value={form.disciplinaid}
+                onChange={this.handleChange}
+                required
+              >
+                <option value="">Selecione</option>
+                {disciplinas.map((disciplina) => (
+                  <option key={disciplina.disciplinaid} value={disciplina.disciplinaid}>
+                    {disciplina.codigo} — {disciplina.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <br />
+            <div className="mb-3">
+              <label className="form-label" htmlFor="professorid">
+                Professor
+              </label>
+              <select
+                className="form-select"
+                id="professorid"
+                name="professorid"
+                value={form.professorid}
+                onChange={this.handleChange}
+                required
+              >
+                <option value="">Selecione</option>
+                {professores.map((professor) => (
+                  <option key={professor.professorid} value={professor.professorid}>
+                    {professor.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div>
-            <label htmlFor="dia_semana">Dia</label>
-            <br />
-            <select
-              id="dia_semana"
-              name="dia_semana"
-              value={form.dia_semana}
-              onChange={this.handleChange}
-              required
-            >
-              <option value="">Selecione</option>
-              {DIAS.map((dia) => (
-                <option key={dia.valor} value={dia.valor}>
-                  {dia.nome}
-                </option>
-              ))}
-            </select>
-          </div>
+            <div className="mb-3">
+              <label className="form-label" htmlFor="dia_semana">
+                Dia
+              </label>
+              <select
+                className="form-select"
+                id="dia_semana"
+                name="dia_semana"
+                value={form.dia_semana}
+                onChange={this.handleChange}
+                required
+              >
+                <option value="">Selecione</option>
+                {DIAS.map((dia) => (
+                  <option key={dia.valor} value={dia.valor}>
+                    {dia.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <br />
+            <div className="mb-3">
+              <label className="form-label" htmlFor="turno">
+                Turno
+              </label>
+              <select
+                className="form-select"
+                id="turno"
+                name="turno"
+                value={form.turno}
+                onChange={this.handleChange}
+                required
+              >
+                <option value="">Selecione</option>
+                {TURNOS.map((turno) => (
+                  <option key={turno.valor} value={turno.valor}>
+                    {turno.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div>
-            <label htmlFor="turno">Turno</label>
-            <br />
-            <select
-              id="turno"
-              name="turno"
-              value={form.turno}
-              onChange={this.handleChange}
-              required
-            >
-              <option value="">Selecione</option>
-              {TURNOS.map((turno) => (
-                <option key={turno.valor} value={turno.valor}>
-                  {turno.nome}
-                </option>
-              ))}
-            </select>
-          </div>
+            <div className="mb-3">
+              <label className="form-label" htmlFor="vagas">
+                Vagas
+              </label>
+              <input
+                className="form-control"
+                id="vagas"
+                type="number"
+                name="vagas"
+                min="1"
+                value={form.vagas}
+                onChange={this.handleChange}
+                required
+              />
+            </div>
 
-          <br />
+            {codigo && <p>Código do horário: {codigo}</p>}
 
-          <div>
-            <label htmlFor="vagas">Vagas</label>
-            <br />
-            <input
-              id="vagas"
-              type="number"
-              name="vagas"
-              min="1"
-              value={form.vagas}
-              onChange={this.handleChange}
-              required
-            />
-          </div>
-
-          {codigo && <p>Código do horário: {codigo}</p>}
-
-          <button type="submit">{turmaidEdicao ? 'Salvar alterações' : 'Criar turma'}</button>
-          {turmaidEdicao && (
-            <button type="button" onClick={this.cancelarEdicao}>
-              Cancelar edição
+            <button className="btn btn-primary" type="submit">
+              {turmaidEdicao ? 'Salvar alterações' : 'Criar turma'}
             </button>
-          )}
-        </form>
+            {turmaidEdicao && (
+              <button className="btn btn-secondary ms-2" type="button" onClick={this.cancelarEdicao}>
+                Cancelar edição
+              </button>
+            )}
+          </form>
 
-        {erro && <p>{erro}</p>}
-        {mensagem && <p>{mensagem}</p>}
+          {erro && <div className="alert alert-danger mt-3">{erro}</div>}
+          {mensagem && <div className="alert alert-success mt-3">{mensagem}</div>}
 
-        <h2>Turmas ofertadas</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Disciplina</th>
-              <th>Professor</th>
-              <th>Horário</th>
-              <th>Vagas</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {turmas.map((turma) => (
-              <tr key={turma.turmaid}>
-                <td>
-                  {turma.disciplina_codigo} — {turma.disciplina_nome}
-                </td>
-                <td>{turma.professor_nome}</td>
-                <td>
-                  {turma.codigo_horario} ({nomeDia(turma.dia_semana)} / {nomeTurno(turma.turno)})
-                </td>
-                <td>
-                  {turma.vagas_ocupadas}/{turma.vagas}
-                </td>
-                <td>
-                  <button type="button" onClick={() => this.editar(turma)}>
-                    Editar
-                  </button>
-                  <button type="button" onClick={() => this.remover(turma)}>
-                    Remover
-                  </button>
-                </td>
+          <h2 className="mt-4">Turmas ofertadas</h2>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Disciplina</th>
+                <th>Professor</th>
+                <th>Horário</th>
+                <th>Vagas</th>
+                <th>Ações</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {turmas.map((turma) => (
+                <tr key={turma.turmaid}>
+                  <td>
+                    {turma.disciplina_codigo} — {turma.disciplina_nome}
+                  </td>
+                  <td>{turma.professor_nome}</td>
+                  <td>
+                    {turma.codigo_horario} ({nomeDia(turma.dia_semana)} / {nomeTurno(turma.turno)})
+                  </td>
+                  <td>
+                    {turma.vagas_ocupadas}/{turma.vagas}
+                  </td>
+                  <td>
+                    <button className="btn btn-primary btn-sm me-2" type="button" onClick={() => this.editar(turma)}>
+                      Editar
+                    </button>
+                    <button className="btn btn-danger btn-sm" type="button" onClick={() => this.remover(turma)}>
+                      Remover
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </main>
       </div>
     );
   }
