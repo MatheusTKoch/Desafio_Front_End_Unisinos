@@ -18,8 +18,8 @@ class AlunoHome extends Component {
               </button>
             </li>
             <li>
-              <button type="button" disabled>
-                Minhas matrículas (em breve)
+              <button type="button" onClick={() => setTela('minhas')}>
+                Minhas matrículas
               </button>
             </li>
           </ul>

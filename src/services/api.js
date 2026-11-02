@@ -71,3 +71,34 @@ export function matricular(usuario, turmaid) {
     body: JSON.stringify({ turmaid }),
   });
 }
+
+export function listarMinhasMatriculas(usuario) {
+  return request('/api/matriculas', { headers: headers(usuario) });
+}
+
+export function listarPrerequisitos(usuario) {
+  return request('/api/prerequisitos', { headers: headers(usuario) });
+}
+
+export function criarPrerequisito(usuario, prerequisito) {
+  return request('/api/prerequisitos', {
+    method: 'POST',
+    headers: headers(usuario),
+    body: JSON.stringify(prerequisito),
+  });
+}
+
+export function atualizarPrerequisito(usuario, prerequisitoid, prerequisito) {
+  return request(`/api/prerequisitos/${prerequisitoid}`, {
+    method: 'PUT',
+    headers: headers(usuario),
+    body: JSON.stringify(prerequisito),
+  });
+}
+
+export function removerPrerequisito(usuario, prerequisitoid) {
+  return request(`/api/prerequisitos/${prerequisitoid}`, {
+    method: 'DELETE',
+    headers: headers(usuario),
+  });
+}

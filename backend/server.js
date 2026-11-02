@@ -101,6 +101,25 @@ function validarOferta(body) {
     };
 }
 
+function validarPrerequisito(body) {
+    const disciplinaid = Number(body.disciplinaid);
+    const disciplina_exigidaid = Number(body.disciplina_exigidaid);
+
+    if (!Number.isInteger(disciplinaid) || disciplinaid <= 0) {
+        return { erro: 'Disciplina inválida' };
+    }
+
+    if (!Number.isInteger(disciplina_exigidaid) || disciplina_exigidaid <= 0) {
+        return { erro: 'Disciplina inválida' };
+    }
+
+    if (disciplinaid === disciplina_exigidaid) {
+        return { erro: 'A disciplina não pode ser pré-requisito dela mesma' };
+    }
+
+    return { disciplinaid, disciplina_exigidaid };
+}
+
 const SQL_TURMAS = `
     SELECT
         t.turmaid,
@@ -121,6 +140,20 @@ const SQL_TURMAS = `
     FROM turma t
     JOIN disciplina d ON d.disciplinaid = t.disciplinaid
     JOIN professor p ON p.professorid = t.professorid
+`;
+
+const SQL_PREREQUISITOS = `
+    SELECT
+        pr.prerequisitoid,
+        pr.disciplinaid,
+        pr.disciplina_exigidaid,
+        d.codigo AS disciplina_codigo,
+        d.nome AS disciplina_nome,
+        e.codigo AS exigida_codigo,
+        e.nome AS exigida_nome
+    FROM prerequisito pr
+    JOIN disciplina d ON d.disciplinaid = pr.disciplinaid
+    JOIN disciplina e ON e.disciplinaid = pr.disciplina_exigidaid
 `;
 
 /* ROTAS */
@@ -292,7 +325,171 @@ app.delete('/api/turmas/:turmaid', requerTipo('instituicao'), async (req, res) =
     }
 });
 
+app.get('/api/prerequisitos', requerTipo('instituicao'), async (_req, res) => {
+    try {
+        const result = await pool.query(
+            `${SQL_PREREQUISITOS} ORDER BY d.codigo, e.codigo`
+        );
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ erro: err.message });
+    }
+});
+
+app.post('/api/prerequisitos', requerTipo('instituicao'), async (req, res) => {
+    const prerequisito = validarPrerequisito(req.body || {});
+
+    if (prerequisito.erro) {
+        return res.status(400).json({ erro: prerequisito.erro });
+    }
+
+    try {
+        const result = await pool.query(
+            `INSERT INTO prerequisito (disciplinaid, disciplina_exigidaid)
+             VALUES ($1, $2)
+             RETURNING prerequisitoid`,
+            [prerequisito.disciplinaid, prerequisito.disciplina_exigidaid]
+        );
+
+        const criado = await pool.query(
+            `${SQL_PREREQUISITOS} WHERE pr.prerequisitoid = $1`,
+            [result.rows[0].prerequisitoid]
+        );
+
+        res.status(201).json(criado.rows[0]);
+    } catch (err) {
+        if (err.code === '23505') {
+            return res.status(409).json({ erro: 'Este pré-requisito já existe' });
+        }
+        if (err.code === '23503') {
+            return res.status(400).json({ erro: 'Disciplina inválida' });
+        }
+        if (err.code === '23514') {
+            return res.status(400).json({
+                erro: 'A disciplina não pode ser pré-requisito dela mesma',
+            });
+        }
+        res.status(500).json({ erro: err.message });
+    }
+});
+
+app.put('/api/prerequisitos/:prerequisitoid', requerTipo('instituicao'), async (req, res) => {
+    const prerequisitoid = Number(req.params.prerequisitoid);
+    const prerequisito = validarPrerequisito(req.body || {});
+
+    if (!Number.isInteger(prerequisitoid) || prerequisitoid <= 0) {
+        return res.status(400).json({ erro: 'Pré-requisito inválido' });
+    }
+
+    if (prerequisito.erro) {
+        return res.status(400).json({ erro: prerequisito.erro });
+    }
+
+    try {
+        const result = await pool.query(
+            `UPDATE prerequisito
+             SET disciplinaid = $1,
+                 disciplina_exigidaid = $2
+             WHERE prerequisitoid = $3
+             RETURNING prerequisitoid`,
+            [prerequisito.disciplinaid, prerequisito.disciplina_exigidaid, prerequisitoid]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ erro: 'Pré-requisito não encontrado' });
+        }
+
+        const atualizado = await pool.query(
+            `${SQL_PREREQUISITOS} WHERE pr.prerequisitoid = $1`,
+            [prerequisitoid]
+        );
+
+        res.json(atualizado.rows[0]);
+    } catch (err) {
+        if (err.code === '23505') {
+            return res.status(409).json({ erro: 'Este pré-requisito já existe' });
+        }
+        if (err.code === '23503') {
+            return res.status(400).json({ erro: 'Disciplina inválida' });
+        }
+        if (err.code === '23514') {
+            return res.status(400).json({
+                erro: 'A disciplina não pode ser pré-requisito dela mesma',
+            });
+        }
+        res.status(500).json({ erro: err.message });
+    }
+});
+
+app.delete('/api/prerequisitos/:prerequisitoid', requerTipo('instituicao'), async (req, res) => {
+    const prerequisitoid = Number(req.params.prerequisitoid);
+
+    if (!Number.isInteger(prerequisitoid) || prerequisitoid <= 0) {
+        return res.status(400).json({ erro: 'Pré-requisito inválido' });
+    }
+
+    try {
+        const result = await pool.query(
+            `DELETE FROM prerequisito WHERE prerequisitoid = $1 RETURNING prerequisitoid`,
+            [prerequisitoid]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ erro: 'Pré-requisito não encontrado' });
+        }
+
+        res.json({ prerequisitoid });
+    } catch (err) {
+        res.status(500).json({ erro: err.message });
+    }
+});
+
 // Rotas de aluno
+app.get('/api/matriculas', requerTipo('aluno'), async (req, res) => {
+    const usuarioid = req.usuarioid;
+
+    if (!usuarioid) {
+        return res.status(401).json({ erro: 'Identificador de usuário não informado' });
+    }
+
+    try {
+        const aluno = await pool.query(
+            `SELECT usuarioid
+             FROM usuario
+             WHERE usuarioid = $1 AND tipo = 'aluno'`,
+            [usuarioid]
+        );
+
+        if (aluno.rowCount === 0) {
+            return res.status(403).json({ erro: 'Acesso negado para este papel' });
+        }
+
+        const result = await pool.query(
+            `SELECT
+                m.matriculaid,
+                m.status,
+                t.turmaid,
+                d.codigo AS disciplina_codigo,
+                d.nome AS disciplina_nome,
+                p.nome AS professor_nome,
+                t.dia_semana,
+                t.turno,
+                t.codigo_horario
+             FROM matricula m
+             JOIN turma t ON t.turmaid = m.turmaid
+             JOIN disciplina d ON d.disciplinaid = t.disciplinaid
+             JOIN professor p ON p.professorid = t.professorid
+             WHERE m.usuarioid = $1
+             ORDER BY d.codigo, t.codigo_horario`,
+            [usuarioid]
+        );
+
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ erro: err.message });
+    }
+});
+
 app.post('/api/matriculas', requerTipo('aluno'), async (req, res) => {
     const turmaid = Number(req.body?.turmaid);
     const usuarioid = req.usuarioid;
@@ -318,7 +515,8 @@ app.post('/api/matriculas', requerTipo('aluno'), async (req, res) => {
         }
 
         const turma = await pool.query(
-            `SELECT t.vagas,
+            `SELECT t.disciplinaid,
+                    t.vagas,
                     COALESCE((
                         SELECT COUNT(*)::int
                         FROM matricula m
@@ -342,6 +540,33 @@ app.post('/api/matriculas', requerTipo('aluno'), async (req, res) => {
 
         if (existente.rowCount > 0) {
             return res.status(409).json({ erro: 'Você já possui matrícula nesta turma' });
+        }
+
+        const faltantes = await pool.query(
+            `SELECT d.codigo, d.nome
+             FROM prerequisito p
+             JOIN disciplina d ON d.disciplinaid = p.disciplina_exigidaid
+             WHERE p.disciplinaid = $1
+               AND NOT EXISTS (
+                   SELECT 1
+                   FROM matricula m
+                   JOIN turma t ON t.turmaid = m.turmaid
+                   WHERE m.usuarioid = $2
+                     AND m.status = 'concluida'
+                     AND t.disciplinaid = p.disciplina_exigidaid
+               )
+             ORDER BY d.codigo`,
+            [turma.rows[0].disciplinaid, usuarioid]
+        );
+
+        if (faltantes.rowCount > 0) {
+            const lista = faltantes.rows
+                .map((disciplina) => `${disciplina.codigo} — ${disciplina.nome}`)
+                .join('; ');
+
+            return res.status(409).json({
+                erro: `Falta pré-requisito concluído: ${lista}`,
+            });
         }
 
         const vagas = Number(turma.rows[0].vagas);

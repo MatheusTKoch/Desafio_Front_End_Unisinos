@@ -18,8 +18,8 @@ class InstituicaoHome extends Component {
               </button>
             </li>
             <li>
-              <button type="button" disabled>
-                Pré-requisitos (em breve)
+              <button type="button" onClick={() => setTela('prerequisitos')}>
+                Pré-requisitos
               </button>
             </li>
             <li>

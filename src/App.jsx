@@ -4,7 +4,9 @@ import Login from './pages/Login';
 import InstituicaoHome from './pages/InstituicaoHome';
 import AlunoHome from './pages/AlunoHome';
 import Ofertas from './pages/Ofertas';
+import PreRequisitos from './pages/PreRequisitos';
 import Catalogo from './pages/Catalogo';
+import MinhasMatriculas from './pages/MinhasMatriculas';
 
 class App extends Component {
   render() {
@@ -19,6 +21,8 @@ class App extends Component {
       switch (telaAtual) {
         case 'ofertas':
           return <Ofertas />;
+        case 'prerequisitos':
+          return <PreRequisitos />;
         case 'instituicao':
         default:
           return <InstituicaoHome />;
@@ -30,6 +34,8 @@ class App extends Component {
       switch (telaAtual) {
         case 'catalogo':
           return <Catalogo />;
+        case 'minhas':
+          return <MinhasMatriculas />;
         case 'aluno':
         default:
           return <AlunoHome />;
