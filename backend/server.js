@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import pool from './sql/pool.js';
+import { requerTipo } from './middleware/auth.js';
 
 const app = express();
 
@@ -8,7 +9,7 @@ const app = express();
 app.use(cors({
     origin: 'http://localhost:5173',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-usuario-tipo'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-usuario-tipo', 'x-usuario-id'],
 }));
 
 // Configuração do Express
@@ -55,6 +56,309 @@ app.post('/api/login', async (req, res) => {
 
         res.json(result.rows[0]);
     } catch (err) {
+        res.status(500).json({ erro: err.message });
+    }
+});
+
+function codigoHorario(diaSemana, turno) {
+    return `${diaSemana}${turno}`;
+}
+
+function validarOferta(body) {
+    const disciplinaid = Number(body.disciplinaid);
+    const professorid = Number(body.professorid);
+    const dia_semana = Number(body.dia_semana);
+    const turno = Number(body.turno);
+    const vagas = Number(body.vagas);
+
+    if (!Number.isInteger(disciplinaid) || disciplinaid <= 0) {
+        return { erro: 'Disciplina inválida' };
+    }
+
+    if (!Number.isInteger(professorid) || professorid <= 0) {
+        return { erro: 'Professor inválido' };
+    }
+
+    if (!Number.isInteger(dia_semana) || dia_semana < 2 || dia_semana > 7) {
+        return { erro: 'Dia da semana inválido' };
+    }
+
+    if (!Number.isInteger(turno) || ![1, 2, 3].includes(turno)) {
+        return { erro: 'Turno inválido' };
+    }
+
+    if (!Number.isInteger(vagas) || vagas <= 0) {
+        return { erro: 'Vagas devem ser maiores que zero' };
+    }
+
+    return {
+        disciplinaid,
+        professorid,
+        dia_semana,
+        turno,
+        codigo_horario: codigoHorario(dia_semana, turno),
+        vagas,
+    };
+}
+
+const SQL_TURMAS = `
+    SELECT
+        t.turmaid,
+        t.disciplinaid,
+        t.professorid,
+        d.codigo AS disciplina_codigo,
+        d.nome AS disciplina_nome,
+        p.nome AS professor_nome,
+        t.dia_semana,
+        t.turno,
+        t.codigo_horario,
+        t.vagas,
+        COALESCE((
+            SELECT COUNT(*)::int
+            FROM matricula m
+            WHERE m.turmaid = t.turmaid AND m.status = 'ativa'
+        ), 0) AS vagas_ocupadas
+    FROM turma t
+    JOIN disciplina d ON d.disciplinaid = t.disciplinaid
+    JOIN professor p ON p.professorid = t.professorid
+`;
+
+app.get('/api/disciplinas', requerTipo('instituicao'), async (_req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT disciplinaid, codigo, nome
+             FROM disciplina
+             ORDER BY codigo`
+        );
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ erro: err.message });
+    }
+});
+
+app.get('/api/professores', requerTipo('instituicao'), async (_req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT professorid, nome
+             FROM professor
+             ORDER BY nome`
+        );
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ erro: err.message });
+    }
+});
+
+app.get('/api/turmas', requerTipo('instituicao', 'aluno'), async (_req, res) => {
+    try {
+        const result = await pool.query(`${SQL_TURMAS} ORDER BY t.turmaid`);
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ erro: err.message });
+    }
+});
+
+app.post('/api/turmas', requerTipo('instituicao'), async (req, res) => {
+    const oferta = validarOferta(req.body || {});
+
+    if (oferta.erro) {
+        return res.status(400).json({ erro: oferta.erro });
+    }
+
+    try {
+        const result = await pool.query(
+            `INSERT INTO turma
+                (disciplinaid, professorid, dia_semana, turno, codigo_horario, vagas)
+             VALUES ($1, $2, $3, $4, $5, $6)
+             RETURNING turmaid`,
+            [
+                oferta.disciplinaid,
+                oferta.professorid,
+                oferta.dia_semana,
+                oferta.turno,
+                oferta.codigo_horario,
+                oferta.vagas,
+            ]
+        );
+
+        const criada = await pool.query(
+            `${SQL_TURMAS} WHERE t.turmaid = $1`,
+            [result.rows[0].turmaid]
+        );
+
+        res.status(201).json(criada.rows[0]);
+    } catch (err) {
+        if (err.code === '23503') {
+            return res.status(400).json({ erro: 'Disciplina ou professor inválido' });
+        }
+        res.status(500).json({ erro: err.message });
+    }
+});
+
+app.put('/api/turmas/:turmaid', requerTipo('instituicao'), async (req, res) => {
+    const turmaid = Number(req.params.turmaid);
+    const oferta = validarOferta(req.body || {});
+
+    if (!Number.isInteger(turmaid) || turmaid <= 0) {
+        return res.status(400).json({ erro: 'Turma inválida' });
+    }
+
+    if (oferta.erro) {
+        return res.status(400).json({ erro: oferta.erro });
+    }
+
+    try {
+        const ocupacao = await pool.query(
+            `SELECT COUNT(*)::int AS ocupadas
+             FROM matricula
+             WHERE turmaid = $1 AND status = 'ativa'`,
+            [turmaid]
+        );
+        const ocupadas = Number(ocupacao.rows[0].ocupadas);
+
+        if (oferta.vagas < ocupadas) {
+            return res.status(400).json({
+                erro: 'Vagas não podem ser menores que as matrículas ativas',
+            });
+        }
+
+        const result = await pool.query(
+            `UPDATE turma
+             SET disciplinaid = $1,
+                 professorid = $2,
+                 dia_semana = $3,
+                 turno = $4,
+                 codigo_horario = $5,
+                 vagas = $6
+             WHERE turmaid = $7
+             RETURNING turmaid`,
+            [
+                oferta.disciplinaid,
+                oferta.professorid,
+                oferta.dia_semana,
+                oferta.turno,
+                oferta.codigo_horario,
+                oferta.vagas,
+                turmaid,
+            ]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ erro: 'Turma não encontrada' });
+        }
+
+        const atualizada = await pool.query(
+            `${SQL_TURMAS} WHERE t.turmaid = $1`,
+            [turmaid]
+        );
+
+        res.json(atualizada.rows[0]);
+    } catch (err) {
+        if (err.code === '23503') {
+            return res.status(400).json({ erro: 'Disciplina ou professor inválido' });
+        }
+        res.status(500).json({ erro: err.message });
+    }
+});
+
+app.delete('/api/turmas/:turmaid', requerTipo('instituicao'), async (req, res) => {
+    const turmaid = Number(req.params.turmaid);
+
+    if (!Number.isInteger(turmaid) || turmaid <= 0) {
+        return res.status(400).json({ erro: 'Turma inválida' });
+    }
+
+    try {
+        const result = await pool.query(
+            `DELETE FROM turma WHERE turmaid = $1 RETURNING turmaid`,
+            [turmaid]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ erro: 'Turma não encontrada' });
+        }
+
+        res.json({ turmaid });
+    } catch (err) {
+        if (err.code === '23503') {
+            return res.status(409).json({
+                erro: 'Não é possível remover uma turma que possui matrículas',
+            });
+        }
+        res.status(500).json({ erro: err.message });
+    }
+});
+
+app.post('/api/matriculas', requerTipo('aluno'), async (req, res) => {
+    const turmaid = Number(req.body?.turmaid);
+    const usuarioid = req.usuarioid;
+
+    if (!usuarioid) {
+        return res.status(401).json({ erro: 'Identificador de usuário não informado' });
+    }
+
+    if (!Number.isInteger(turmaid) || turmaid <= 0) {
+        return res.status(400).json({ erro: 'Turma inválida' });
+    }
+
+    try {
+        const aluno = await pool.query(
+            `SELECT usuarioid
+             FROM usuario
+             WHERE usuarioid = $1 AND tipo = 'aluno'`,
+            [usuarioid]
+        );
+
+        if (aluno.rowCount === 0) {
+            return res.status(403).json({ erro: 'Acesso negado para este papel' });
+        }
+
+        const turma = await pool.query(
+            `SELECT t.vagas,
+                    COALESCE((
+                        SELECT COUNT(*)::int
+                        FROM matricula m
+                        WHERE m.turmaid = t.turmaid AND m.status = 'ativa'
+                    ), 0) AS ocupadas
+             FROM turma t
+             WHERE t.turmaid = $1`,
+            [turmaid]
+        );
+
+        if (turma.rowCount === 0) {
+            return res.status(404).json({ erro: 'Turma não encontrada' });
+        }
+
+        const existente = await pool.query(
+            `SELECT matriculaid
+             FROM matricula
+             WHERE usuarioid = $1 AND turmaid = $2`,
+            [usuarioid, turmaid]
+        );
+
+        if (existente.rowCount > 0) {
+            return res.status(409).json({ erro: 'Você já possui matrícula nesta turma' });
+        }
+
+        const vagas = Number(turma.rows[0].vagas);
+        const ocupadas = Number(turma.rows[0].ocupadas);
+
+        if (ocupadas >= vagas) {
+            return res.status(409).json({ erro: 'Sem vagas nesta turma' });
+        }
+
+        const criada = await pool.query(
+            `INSERT INTO matricula (usuarioid, turmaid, status)
+             VALUES ($1, $2, 'ativa')
+             RETURNING matriculaid, usuarioid, turmaid, status`,
+            [usuarioid, turmaid]
+        );
+
+        res.status(201).json(criada.rows[0]);
+    } catch (err) {
+        if (err.code === '23505') {
+            return res.status(409).json({ erro: 'Você já possui matrícula nesta turma' });
+        }
         res.status(500).json({ erro: err.message });
     }
 });

@@ -3,7 +3,7 @@ import { AuthContext } from '../context/AuthContext';
 
 class AlunoHome extends Component {
   render() {
-    const { usuario, logout } = this.context;
+    const { usuario, logout, setTela } = this.context;
 
     return (
       <div>
@@ -13,8 +13,8 @@ class AlunoHome extends Component {
         <nav>
           <ul>
             <li>
-              <button type="button" disabled>
-                Catálogo de turmas (em breve)
+              <button type="button" onClick={() => setTela('catalogo')}>
+                Catálogo de turmas
               </button>
             </li>
             <li>

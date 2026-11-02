@@ -3,6 +3,8 @@ import { AuthContext } from './context/AuthContext';
 import Login from './pages/Login';
 import InstituicaoHome from './pages/InstituicaoHome';
 import AlunoHome from './pages/AlunoHome';
+import Ofertas from './pages/Ofertas';
+import Catalogo from './pages/Catalogo';
 
 class App extends Component {
   render() {
@@ -15,6 +17,8 @@ class App extends Component {
     // Instituição: nunca renderiza telas de aluno
     if (usuario.tipo === 'instituicao') {
       switch (telaAtual) {
+        case 'ofertas':
+          return <Ofertas />;
         case 'instituicao':
         default:
           return <InstituicaoHome />;
@@ -24,6 +28,8 @@ class App extends Component {
     // Aluno: nunca renderiza telas de instituição
     if (usuario.tipo === 'aluno') {
       switch (telaAtual) {
+        case 'catalogo':
+          return <Catalogo />;
         case 'aluno':
         default:
           return <AlunoHome />;
