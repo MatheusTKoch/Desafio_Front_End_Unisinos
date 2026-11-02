@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "app": "npm run dev && npm run start",
     "dev": "vite",
     "start": "node backend/server.js",
     "create-schema": "node backend/sql/createSchema.js",
