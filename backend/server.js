@@ -8,7 +8,7 @@ const app = express();
 app.use(cors({
     origin: 'http://localhost:5173',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-usuario-tipo'],
 }));
 
 // Configuração do Express
@@ -30,6 +30,32 @@ app.get('/api/health', async (_req, res) => {
         res.json({ ok: true, database: 'plataforma_academica' });
     } catch (err) {
         res.status(500).json({ ok: false, error: err.message });
+    }
+});
+
+// Login: email + senha → dados do usuário (sem senha)
+app.post('/api/login', async (req, res) => {
+    const { email, senha } = req.body;
+
+    if (!email || !senha) {
+        return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
+    }
+
+    try {
+        const result = await pool.query(
+            `SELECT usuarioid, nome, email, tipo
+             FROM usuario
+             WHERE email = $1 AND senha = $2`,
+            [email, senha]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(401).json({ erro: 'Credenciais inválidas' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (err) {
+        res.status(500).json({ erro: err.message });
     }
 });
 
