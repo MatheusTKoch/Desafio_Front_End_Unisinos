@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "start": "node backend/server.js",
+    "create-schema": "node backend/sql/createSchema.js",
+    "create-seed": "node backend/sql/createSeed.js",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
