@@ -123,6 +123,9 @@ const SQL_TURMAS = `
     JOIN professor p ON p.professorid = t.professorid
 `;
 
+/* ROTAS */
+
+// Rotas de instituicao
 app.get('/api/disciplinas', requerTipo('instituicao'), async (_req, res) => {
     try {
         const result = await pool.query(
@@ -289,6 +292,7 @@ app.delete('/api/turmas/:turmaid', requerTipo('instituicao'), async (req, res) =
     }
 });
 
+// Rotas de aluno
 app.post('/api/matriculas', requerTipo('aluno'), async (req, res) => {
     const turmaid = Number(req.body?.turmaid);
     const usuarioid = req.usuarioid;
